@@ -11,12 +11,23 @@ from data.skeleton import Skeleton
 from data.mocap_dataset import MocapDataset
 from data.camera import normalize_screen_coordinates, image_coordinates
        
-h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  0,  6,  7,  8,  9,  0, 11, 12, 13, 14, 12,
-       16, 17, 18, 19, 20, 19, 22, 12, 24, 25, 26, 27, 28, 27, 30],
-       joints_left=[6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22, 23],
-       joints_right=[1, 2, 3, 4, 5, 24, 25, 26, 27, 28, 29, 30, 31])
+h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  5,  2,  7,  8,  9,  2,  11, 12, 13, 14, 15, 16, #h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  0,  6,  7,  8,  9,  0, 11, 12, 13, 14, 12,
+       17, 15, 19, 20],                                                                                    #       16, 17, 18, 19, 20, 19, 22, 12, 24, 25, 26, 27, 28, 27, 30],
+       joints_left=[7, 8, 9, 10, 19, 20, 21],                                                              #       joints_left=[6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22, 23],
+       joints_right=[3, 4, 5, 6, 16, 17, 18])                                                              #       joints_right=[1, 2, 3, 4, 5, 24, 25, 26, 27, 28, 29, 30, 31])
 
 h36m_cameras_intrinsic_params = [
+    {
+        'id': '12345678',                               #can I just do that like that?
+        'center': [0.0, 0.0],                           #got no clue what this parameter means
+        'focal_length': [2058.726644, 1158.033737],     #hope I calculated that correctly
+        'radial_distortion': [0.0, 0.0, 0.0],           #hope this does not affect the model at first
+        'tangential_distortion': [0.0, 0.0],            #(see above)
+        'res_w': 1920,
+        'res_h': 1080,
+        'azimuth': 0, # Only used for visualization     #(see above)
+    },
+    '''
     {
         'id': '54138969',
         'center': [512.54150390625, 515.4514770507812],
@@ -26,7 +37,7 @@ h36m_cameras_intrinsic_params = [
         'res_w': 1000,
         'res_h': 1002,
         'azimuth': 70, # Only used for visualization
-    },
+    }, 
     {
         'id': '55011271',
         'center': [508.8486328125, 508.0649108886719],
@@ -57,8 +68,18 @@ h36m_cameras_intrinsic_params = [
         'res_h': 1002,
         'azimuth': -110, # Only used for visualization
     },
+    '''
 ]
 
+h36m_cameras_extrinsic_params = {
+    'S1': [
+        {
+            'orientation': [0.1407056450843811, -0.1500701755285263, -0.755240797996521, 0.6223280429840088],   #diese werte vllt aus einer vorgefertigten map herausholen? oder doch manuell?
+            'translation': [1841.1070556640625, 4955.28466796875, 1563.4454345703125],                          #siehe oben
+        },
+    ],
+}
+'''
 h36m_cameras_extrinsic_params = {
     'S1': [
         {
@@ -205,10 +226,11 @@ h36m_cameras_extrinsic_params = {
         },
     ],
 }
+'''
 
 class Human36mDataset(MocapDataset):
     def __init__(self, path, remove_static_joints=True):
-        super().__init__(fps=50, skeleton=h36m_skeleton)
+        super().__init__(fps=30, skeleton=h36m_skeleton) #super().__init__(fps=50, skeleton=h36m_skeleton)
         
         self._cameras = copy.deepcopy(h36m_cameras_extrinsic_params)
         for cameras in self._cameras.values():
