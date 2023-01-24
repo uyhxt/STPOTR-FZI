@@ -60,16 +60,16 @@ from data.h36m_dataset import Human36mDataset
 from data.camera import *
 from scipy.spatial.transform import Rotation as R2
 
-_ALL_ACTIONS = [
-    "Directions", "Discussion", "Eating", "Greeting", "Phoning",
-    "Photo","Posing", "Purchases", "Sitting", "SittingDown", "Smoking",
-    "Waiting", "Walking", "WalkDog", "WalkTogether"
-]
+_ALL_ACTIONS = [                                                          #originally: _ALL_ACTIONS = [
+    "Directions", "Discussion", "Eating", "Greeting", "Phoning",          #    "Directions", "Discussion", "Eating", "Greeting", "Phoning",
+    "Photo","Posing", "Purchases", "Sitting", "SittingDown", "Smoking",   #    "Photo","Posing", "Purchases", "Sitting", "SittingDown", "Smoking",
+    "Waiting", "Walking", "WalkDog", "WalkTogether"                       #    "Waiting", "Walking", "WalkDog", "WalkTogether"
+]                                                                         #]
 
-_MAJOR_JOINTS = [0, 1, 2, 5, 6, 7, 11, 12, 13, 14, 16, 17, 18, 24, 25, 26]
+_MAJOR_JOINTS = [0, 1, 2, 4, 5, 6, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20, 21]  #originally: [0, 1, 2, 5, 6, 7, 11, 12, 13, 14, 16, 17, 18, 24, 25, 26]
 
 _NMAJOR_JOINTS = len(_MAJOR_JOINTS)
-_NH36M_JOINTS = 32
+_NH36M_JOINTS = 22                                                        #originally: _NH36M_JOINTS = 32
 
 _MOCAP_DIM = 99
 _MIN_STD = 1e-4
@@ -215,9 +215,9 @@ class H36MDataset(torch.utils.data.Dataset):
     """
     super(H36MDataset, self).__init__(**kwargs)
     self._params = params
-    self._train_ids = [1,5,6,7,8] 
-    self._test_ids = [9,11]
-    self._test_subject = [9,11]
+    self._train_ids = [1]                           #originally: [1,5,6,7,8] 
+    self._test_ids = [1]                            #originally: [9,11]
+    self._test_subject = [1]                        #originally: [9,11]
     self._test_n_seeds = params['eval_num_seeds']
     self._action_defs = []
     self._norm_stats = {}
@@ -731,26 +731,26 @@ class H36MDataset(torch.utils.data.Dataset):
 
     self.load_action_defs()
     self._n_actions = len(self._action_defs)
-    self.joints_left=[3, 4, 5, 10, 11, 12]
-    self.joints_right=[0, 1, 2, 13, 14, 15]
-    self._data_ids_stat = [1,5,6,7,8,9,11]
-    self._augment_cameras_ang = [20,50, 90,150,220,250, 290, 330]
+    self.joints_left=[7, 8, 9, 10, 19, 20, 21]                        #originally: [3, 4, 5, 10, 11, 12]
+    self.joints_right=[3, 4, 5, 6, 16, 17, 18]                        #originally: [0, 1, 2, 13, 14, 15]
+    self._data_ids_stat =[1]                                          #originally: [1,5,6,7,8,9,11]
+    self._augment_cameras_ang = [20,50, 90,150,220,250, 290, 330]     #what values schould I put in there?
     self._augment_cameras_x = [4.0,5.0, 1.4, 0,-3.2,-4.1,-4.8,-4.3]
     self._augment_cameras_y = [2.0,1.0,-2.0,-4.5,-2.5,0,2.2 ,5.4]
     
-    file_prefix = "{}/S{}/{}_{}.npy"
-    dataset_path = os.path.join(self._params['data_path'], 'dataset')
+    file_prefix = "{}/S{}/{}_{}.npy"                                  #seems to be unused. maybe no change needed 
+    dataset_path = os.path.join(self._params['data_path'], 'dataset') #seems to be unused. maybe no change needed 
 
     all_dataset = []
     all_traj=[]
-    data_address = '../data/data_3d_h36m.npz'
+    data_address = '../data/data_3d_h36m.npz'                         #either use same name or change it immediately 
     my_data = np.load(data_address, allow_pickle=True)['positions_3d'].item()
     dataset = Human36mDataset(data_address)       
 
     for s_id in self._data_ids_stat:
-        tot_action_sequence = my_data['S'+str(s_id)]
-        self.my_keys = tot_action_sequence.keys()
-        if s_id==11:
+        tot_action_sequence = my_data['S'+str(s_id)]                  #call the data set of every person Sn
+        self.my_keys = tot_action_sequence.keys()                     #all actions associated with one person Sn
+        if s_id==11:                                                  #why is i = 4 here and 1 else?
             i=4
         else:
             i=0
@@ -758,14 +758,14 @@ class H36MDataset(torch.utils.data.Dataset):
             action_sequence = tot_action_sequence[action]
             n_frames,njoints, dims = action_sequence.shape
             frq=self._params['frame_rate']
-            even_idx = range(0, n_frames, int(50//frq))
+            even_idx = range(0, n_frames, int(30//frq))              #range(0, n_frames, int(50//frq))               #maybe change 50 to 30? 
             action_sequence = action_sequence[even_idx, :]
             anim = dataset['S'+str(s_id)][action]
             action_sequence_main = np.copy(action_sequence)
             
             for cam in anim['cameras']:
-                correct_action = sorted(self._action_defs)[int(i/8)]
-                sact = i%8+1
+                correct_action = sorted(self._action_defs)[int(i/8)]        #probably need to change 8 into number of ids+1
+                sact = i%8+1                                                #same here 
                 action_sequence = world_to_camera(action_sequence_main, R=cam['orientation'], t=cam['translation'])
                 traj_sequence = action_sequence[:,0]
                 action_sequence = action_sequence - traj_sequence.reshape(-1,1,3)
