@@ -66,7 +66,7 @@ _ALL_ACTIONS = [                                                          #origi
     "Waiting", "Walking", "WalkDog", "WalkTogether"                       #    "Waiting", "Walking", "WalkDog", "WalkTogether"
 ]                                                                         #]
 
-_MAJOR_JOINTS = [0, 1, 2, 4, 5, 6, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20, 21]  #originally: [0, 1, 2, 5, 6, 7, 11, 12, 13, 14, 16, 17, 18, 24, 25, 26]
+_MAJOR_JOINTS = [0, 1, 2, 3, 4, 5, 6, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21] #our first version: [0, 1, 2, 4, 5, 6, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20, 21]  #originally: [0, 1, 2, 5, 6, 7, 11, 12, 13, 14, 16, 17, 18, 24, 25, 26]
 
 _NMAJOR_JOINTS = len(_MAJOR_JOINTS)
 _NH36M_JOINTS = 22                                                        #originally: _NH36M_JOINTS = 32
@@ -332,7 +332,7 @@ class H36MDataset(torch.utils.data.Dataset):
 
     N, _ = self._data[the_key].shape
 
-    start_frame = np.random.randint(16, N-total_frames)
+    start_frame = np.random.randint(16, N-total_frames)                                                         #nicht 17 anstelle von 16?
     # total_framesxn_joints*joint_dim
     data_sel = self._data[the_key][start_frame:(start_frame+total_frames), :]
     data_sel_traj = self._traj[the_key][start_frame:(start_frame+total_frames), :]
@@ -595,7 +595,7 @@ class H36MDataset(torch.utils.data.Dataset):
 
     total_length = src_seq_len + self._params['target_seq_len']
 
-    the_key = (self._test_subject[0], action, 1)
+    the_key = (self._test_subject[0], action, 1)                        #über das hier nochmal nachsehen
     data_action = self._data[the_key]
     tot_seq, _ = data_action.shape
     seq1 = tot_seq // total_length
@@ -715,7 +715,7 @@ class H36MDataset(torch.utils.data.Dataset):
                       action_sequence_main):
     ## augment with respect to a random camera
     entry_key = (s_id, correct_action,sact+added_sact)
-    rr = R2.from_euler('xyz', [ 24.96+ new_angle , 2.21,-100.78],degrees=True)
+    rr = R2.from_euler('xyz', [ 24.96+ new_angle , 2.21,-100.78],degrees=True)                #diese parameter vllt ändern?
     new_angle = rr.as_quat()
     t1 = np.array([new_x,new_y,1.5])
     action_sequence = world_to_camera(action_sequence_main, R=new_angle, t=t1)  
@@ -731,8 +731,8 @@ class H36MDataset(torch.utils.data.Dataset):
 
     self.load_action_defs()
     self._n_actions = len(self._action_defs)
-    self.joints_left=[7, 8, 9, 10, 19, 20, 21]                        #originally: [3, 4, 5, 10, 11, 12]
-    self.joints_right=[3, 4, 5, 6, 16, 17, 18]                        #originally: [0, 1, 2, 13, 14, 15]
+    self.joints_left=[1, 2, 3, 15, 16, 17]                            #our version 1: [7, 8, 9, 10, 19, 20, 21]                        #originally: [3, 4, 5, 10, 11, 12]
+    self.joints_right=[4, 5, 6, 19, 20, 21]                           #originally: [0, 1, 2, 13, 14, 15]
     self._data_ids_stat =[1]                                          #originally: [1,5,6,7,8,9,11]
     self._augment_cameras_ang = [20,50, 90,150,220,250, 290, 330]     #what values schould I put in there?
     self._augment_cameras_x = [4.0,5.0, 1.4, 0,-3.2,-4.1,-4.8,-4.3]
@@ -766,11 +766,11 @@ class H36MDataset(torch.utils.data.Dataset):
             for cam in anim['cameras']:
                 correct_action = sorted(self._action_defs)[int(i/8)]        #probably need to change 8 into number of ids+1
                 sact = i%8+1                                                #same here 
-                action_sequence = world_to_camera(action_sequence_main, R=cam['orientation'], t=cam['translation'])
+                action_sequence = world_to_camera(action_sequence_main, R=cam['orientation'], t=cam['translation']) #adjust world to camera orientation 
                 traj_sequence = action_sequence[:,0]
                 action_sequence = action_sequence - traj_sequence.reshape(-1,1,3)
 
-                action_sequence_ = action_sequence.reshape(-1,96)[:, 3:]
+                action_sequence_ = action_sequence.reshape(-1,96)[:, 3:]    #why -1,96?
                 action_sequence = self.preprocess_sequence(action_sequence_)
 
                 entry_key = (s_id, correct_action,sact)
@@ -781,7 +781,7 @@ class H36MDataset(torch.utils.data.Dataset):
                 traj_sequence_copy = np.copy(traj_sequence)
                 if self.augment and s_id!=self._test_subject[0] and s_id!=self._test_subject[1]:
                     ## augment with respect to X
-                    entry_key = (s_id, correct_action,sact+100)
+                    entry_key = (s_id, correct_action,sact+100)          
                     action_sequence = np.copy(action_sequence_copy).reshape(-1,self._params['n_joints'],3)
                     action_sequence[:,:,0] *= -1
                     action_sequence[:,self.joints_left+self.joints_right] = action_sequence[:,self.joints_right+self.joints_left] 
@@ -792,7 +792,7 @@ class H36MDataset(torch.utils.data.Dataset):
                     all_traj.append(traj_sequence)
                     
                     ## augment with respect to Z
-                    entry_key = (s_id, correct_action,sact+200)
+                    entry_key = (s_id, correct_action,sact+200)          
                     action_sequence = np.copy(action_sequence_copy).reshape(-1,self._params['n_joints'],3)
                     action_sequence[:,:,2] *= -1
                     action_sequence[:,self.joints_left+self.joints_right] = action_sequence[:,self.joints_right+self.joints_left] 
@@ -803,7 +803,7 @@ class H36MDataset(torch.utils.data.Dataset):
                     all_traj.append(traj_sequence)
                     
                     ## augment with respect to XZ
-                    entry_key = (s_id, correct_action,sact+300)
+                    entry_key = (s_id, correct_action,sact+300)        
                     action_sequence = np.copy(action_sequence_copy).reshape(-1,self._params['n_joints'],3)
                     action_sequence[:,:,0] *= -1
                     action_sequence[:,:,2] *= -1
@@ -814,7 +814,7 @@ class H36MDataset(torch.utils.data.Dataset):
                     traj_sequence[:,2] *= -1
                     all_traj.append(traj_sequence)
                     
-                    added_sact= 400
+                    added_sact= 400                                                                       #what is sact? why 400?
                     for aug in range(len(self._augment_cameras_ang)):
                         added_sact += 100
                         ang = self._augment_cameras_ang[aug]
@@ -848,21 +848,21 @@ class H36MDataset(torch.utils.data.Dataset):
 
     self.load_action_defs()
     self._n_actions = len(self._action_defs)
-    self._augment_cameras_ang = [20,50, 90,150,   220,250, 290, 330]
-    self._augment_cameras_x = [4.0,5.0, 1.4, 0,  -3.2,-4.1,-4.8,-4.3]
-    self._augment_cameras_y = [2.0,1.0,-2.0,-4.5,-2.5,0   ,2.2 ,5.4]  
+    self._augment_cameras_ang = [20,50, 90,150,   220,250, 290, 330]            #got no clue what parameters have to get in here
+    self._augment_cameras_x = [4.0,5.0, 1.4, 0,  -3.2,-4.1,-4.8,-4.3]           #see above
+    self._augment_cameras_y = [2.0,1.0,-2.0,-4.5,-2.5,0   ,2.2 ,5.4]            #see above
 
     file_prefix = "{}/S{}/{}_{}.npy"
     dataset_path = os.path.join(self._params['data_path'], 'dataset')
 
-    data_address = '../data/data_3d_h36m.npz'
+    data_address = '../data/data_3d_h36m.npz'                                   #either use same name of change immediately
     my_data = np.load(data_address, allow_pickle=True)['positions_3d'].item()
     dataset = Human36mDataset(data_address)       
 
     for s_id in self._data_ids:
-        tot_action_sequence = my_data['S'+str(s_id)]
-        self.my_keys = tot_action_sequence.keys()
-        if s_id==11:
+        tot_action_sequence = my_data['S'+str(s_id)]                            #get data for every person Sn
+        self.my_keys = tot_action_sequence.keys()                               #get actions of every person Sn
+        if s_id==11:                                                            #why i here == 4?
             i=4
         else:
             i=0
@@ -871,22 +871,22 @@ class H36MDataset(torch.utils.data.Dataset):
 
             n_frames,njoints, dims = action_sequence.shape
             frq=self._params['frame_rate']
-            even_idx = range(0, n_frames, int(50//frq))
+            even_idx = range(0, n_frames, int(30//frq))                        #range(0, n_frames, int(50//frq))                         #maybe need to replace 50 with 30?
             action_sequence = action_sequence[even_idx, :]
             anim = dataset['S'+str(s_id)][action]
             action_sequence_main = np.copy(action_sequence)
             
             for cam in anim['cameras']:
-                correct_action = sorted(self._action_defs)[int(i/8)]
-                sact = i%8+1
-                action_sequence = world_to_camera(action_sequence_main, R=cam['orientation'], t=cam['translation'])
+                correct_action = sorted(self._action_defs)[int(i/8)]           #maybe need to change 8 to ammount of people Sn + 1 ? 
+                sact = i%8+1                                                   #see above
+                action_sequence = world_to_camera(action_sequence_main, R=cam['orientation'], t=cam['translation']) #calculate world to camera orientation
                 traj_sequence = action_sequence[:,0]
                 action_sequence = action_sequence - traj_sequence.reshape(-1,1,3)
 
-                action_sequence_ = action_sequence.reshape(-1,96)[:, 3:]
+                action_sequence_ = action_sequence.reshape(-1,96)[:, 3:]       #why -1,96?
                 action_sequence = self.preprocess_sequence(action_sequence_)
 
-                entry_key = (s_id, correct_action,sact)
+                entry_key = (s_id, correct_action,sact)                        #what in the love of god is the entry key? (review l.889-978 again)
                 self._data[entry_key] = action_sequence
 
                 self._traj[entry_key] = traj_sequence
@@ -1175,7 +1175,7 @@ def visualize_sequence(action_sequence, data_path, prefix=None, colors=None):
 
   expmap = utils.revert_coordinate_space(sequence, np.eye(3), np.zeros(3))
   # create data without the root joint 
-  xyz_data = np.zeros((nframes, 96))
+  xyz_data = np.zeros((nframes, 96))                                                            #change to 22*3 = 66?
 
   for i in range(nframes):
     pose = expmap[i, :]
@@ -1217,7 +1217,7 @@ def visualize_sequence_mine(action_sequence, data_path, prefix=None, colors=None
 
   expmap = utils.revert_coordinate_space(sequence, np.eye(3), np.zeros(3))
   # create data without the root joint
-  xyz_data = np.zeros((nframes, 96))
+  xyz_data = np.zeros((nframes, 96))                                                      #change to 66?
 
   for i in range(nframes):
     pose = expmap[i, :]

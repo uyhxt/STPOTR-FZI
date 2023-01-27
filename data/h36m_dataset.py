@@ -11,14 +11,14 @@ from data.skeleton import Skeleton
 from data.mocap_dataset import MocapDataset
 from data.camera import normalize_screen_coordinates, image_coordinates
        
-h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  5,  2,  7,  8,  9,  2,  11, 12, 13, 14, 15, 16, #h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  0,  6,  7,  8,  9,  0, 11, 12, 13, 14, 12,
-       17, 15, 19, 20],                                                                                    #       16, 17, 18, 19, 20, 19, 22, 12, 24, 25, 26, 27, 28, 27, 30],
-       joints_left=[7, 8, 9, 10, 19, 20, 21],                                                              #       joints_left=[6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22, 23],
-       joints_right=[3, 4, 5, 6, 16, 17, 18])                                                              #       joints_right=[1, 2, 3, 4, 5, 24, 25, 26, 27, 28, 29, 30, 31])
+h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  0,  4,  5,  0,  7,  8,  9,  10,  11, 12, 11, 14, 15, 16, #version 1 of ours: parents=[-1,  0,  1,  2,  3,  4,  5,  2,  7,  8,  9,  2,  11, 12, 13, 14, 15, 16, #h36m_skeleton = Skeleton(parents=[-1,  0,  1,  2,  3,  4,  0,  6,  7,  8,  9,  0, 11, 12, 13, 14, 12,
+       11, 18, 19, 20],                                                                                     #17, 15, 19, 20],                                                                                    #       16, 17, 18, 19, 20, 19, 22, 12, 24, 25, 26, 27, 28, 27, 30],
+       joints_left=[1, 2, 3, 14, 15, 16, 17],                                                               #version 1 of ours: [7, 8, 9, 10, 19, 20, 21],                                                               #       joints_left=[6, 7, 8, 9, 10, 16, 17, 18, 19, 20, 21, 22, 23],
+       joints_right=[4, 5, 6, 18, 19, 20, 21])                                                              #version 1 of ours: [3, 4, 5, 6, 16, 17, 18])                                                               #       joints_right=[1, 2, 3, 4, 5, 24, 25, 26, 27, 28, 29, 30, 31])
 
 h36m_cameras_intrinsic_params = [
     {
-        'id': '12345678',                               #can I just do that like that?
+        'id': '54138969',                               #can I just do that like that?
         'center': [0.0, 0.0],                           #got no clue what this parameter means
         'focal_length': [2058.726644, 1158.033737],     #hope I calculated that correctly
         'radial_distortion': [0.0, 0.0, 0.0],           #hope this does not affect the model at first
@@ -74,8 +74,8 @@ h36m_cameras_intrinsic_params = [
 h36m_cameras_extrinsic_params = {
     'S1': [
         {
-            'orientation': [0.1407056450843811, -0.1500701755285263, -0.755240797996521, 0.6223280429840088],   #diese werte vllt aus einer vorgefertigten map herausholen? oder doch manuell?
-            'translation': [1841.1070556640625, 4955.28466796875, 1563.4454345703125],                          #siehe oben
+            'orientation': [0.0, 0.0, 0.0, 0.0],   #[0.1407056450843811, -0.1500701755285263, -0.755240797996521, 0.6223280429840088],   #diese werte vllt aus einer vorgefertigten map herausholen? oder doch manuell?
+            'translation': [0.0, 0.0, 0.0],        #[1841.1070556640625, 4955.28466796875, 1563.4454345703125],                          #siehe oben
         },
     ],
 }
